@@ -1,5 +1,5 @@
 .col {
-  min-height: 100px;
+  min-height: 90%;
   padding-right: 0px;
   padding-left: 0px;
 }
@@ -13,8 +13,8 @@ button:not(:disabled), [type="button"]:not(:disabled), [type="reset"]:not(:disab
 }
 
 .btn {
-  width: 5rem;
-  height: 5rem;
+  width: 4rem;
+  height: 4rem;
 }
 
 .progress {
@@ -27,7 +27,7 @@ button:not(:disabled), [type="button"]:not(:disabled), [type="reset"]:not(:disab
 }
 
 .progress-bar {
-  width: 70%;
+  /* width: 40%; */
   height: 8px;
   border-radius: 4px;
 	background-image: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
@@ -53,19 +53,19 @@ button:not(:disabled), [type="button"]:not(:disabled), [type="reset"]:not(:disab
  *       https://css-tricks.com/webkit-sibling-bug/
  */
 }
-.one {
+.color1 {
   background-color: #f63a0f;
 }
-.two {
+.color2 {
   background-color: #f27011;
 }
-.three{
+.color3 {
   background-color: #f2b01e;
 }
-.four{
+.color4 {
   background-color: #f2d31b;
 }
-.five{
+.color5 {
   background-color: #86e01e;
 }
 .row.d-flex.mx-auto {
@@ -85,6 +85,10 @@ button:not(:disabled), [type="button"]:not(:disabled), [type="reset"]:not(:disab
     /* max-width: 80%; */
     height: 10%;
   }
+  .btn {
+  width: 5rem;
+  height: 5rem;
+}
 }
 
 @media (min-width: 768px) {

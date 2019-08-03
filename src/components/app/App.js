@@ -1,9 +1,23 @@
-import React, {Component} from 'react';
-import styles from './App.css';
+import React, { Component } from 'react';
+import './App.css';
+import Switch from "../switch/switch";
+
 
 class App extends Component {
-  butt = 5;
-  colorButton = `btn-info`
+  static defaultProps = {
+    count: 100,
+    settings: { butt: null }
+  };
+
+
+  butt = this.props.butt;
+  count = this.props.count;
+  settings = this.props.settings;
+  storage = localStorage; // используем localStorage для хранения настроек
+  //colorButton = `btn-info`
+
+
+
 
   state = {
     start: "Start Mul",
@@ -12,7 +26,8 @@ class App extends Component {
     factor2: null,
     result: null,
     select: null,
-    progressBarColor: `one`,
+    progressBarColor: `color1`,
+    progressBarValue: -1,
     classButton: [],
     buttonData: [],
     rating: 5
@@ -23,55 +38,87 @@ class App extends Component {
    };
 
   init() {
-    this.update(this.butt);
+    const { progressBarValue } = this.state
+    const countLocal = this.count - progressBarValue
+    if (countLocal === 0) return;
+    const progressBarColor = `color${Math.floor(progressBarValue/this.count*5)+1}`
+    this.update(progressBarColor, this.count - countLocal + 1);
   };
 
-  update(buttons) {
-    const factor1 = this.randomData(9);
-    const factor2 = this.randomData(9);
+  update(progressBarColor, progressBarValue) {
+    let switchValue = this.storage.getItem('settings.switchValue');
+    if (switchValue === "hard") {
+          switchValue = true;
+    } else {
+          switchValue = false;
+    };
+    const factor1 = this.randomData(2, 9);
+    const factor2 = this.randomData(2, 9);
     const result = factor1 * factor2;
-    const select = this.randomData(3);
+    const select = this.randomData(1, 3);
+    const buttons = switchValue ? 5 : 3;
     const classButton = new Array(buttons).fill(`btn-info`);
     const buttonData = this.generator(buttons, select, factor1, factor2, result);
     this.setState({
+      switchValue,
       factor1,
       factor2,
       result,
       select,
       buttons,
       classButton,
-      buttonData
+      buttonData,
+      progressBarValue,
+      progressBarColor
     });
   };
 
-  randomData(range, offset = 1) {
-    return Math.floor(Math.random() * range) + offset;
+  async setValue(){
+    let switchValue = !this.state.switchValue;
+    console.log("TCL: App -> setValue -> value", switchValue)
+    let { progressBarValue } = this.state;
+    progressBarValue = (progressBarValue === 0) ? Number(-1) : (progressBarValue - 1)
+    await this.setProgress(switchValue, progressBarValue);
+    let data = switchValue ? "hard" : "easy";
+    this.storage.setItem('settings.switchValue', data)
+    await this.init();
+  }
+
+  async setProgress (switchValue, progressBarValue) {
+    await this.setState({
+      switchValue,
+      progressBarValue
+    });
+  }
+
+  randomData(min = 1, max) {
+    return Math.floor(min + Math.random() * (max + 1 - min));
   };
 
   generator(buttons, select, factor1, factor2, result) {
-    let rnd, range = null, offset = 1;
+    let rnd, max = null, min = 1;
     const buttonData = [];
     //const { buttons, select, factor1, factor2, result } = this.state;
     switch (select) {
       case 1:
         buttonData.push(factor1);
-        range = 9;
+        max = 9;
         break;
       case 2:
         buttonData.push(factor2);
-        range = 9;
+        max = 9;
         break;
       case 3:
         buttonData.push(result);
-        range = (result + 10);
-        offset = ((range - 20) < 1) ? 1 : (range - 20);
-        range = ((range + offset) > 99) ? (99 - offset) : range;
+        max = (result + 10);
+        min = ((max - 20) < 1) ? 1 : (max - 20);
+        max = ((max + min) > 99) ? (99 - min) : max;
         break;
       default:
         console.log('Я таких значений не знаю');
     };
     do {
-      rnd = this.randomData(range, offset);
+      rnd = this.randomData(min, max);
       if ((!buttonData.includes(rnd))) {
         buttonData.push(rnd);
         console.log("TCL: App -> generator -> buttonData", buttonData)}
@@ -83,18 +130,18 @@ class App extends Component {
   console.log("TCL: App -> rating -> rating", rating)
   };
 
-  timerCount() {
-    return new Promise(resolve => setTimeout(resolve, 150));
+  timerDelay() {
+    return new Promise(resolve => setTimeout(resolve, 120));
   }
 
   timerButton(setColor, index) {
-    let array = [];
-    const { classButton } = this.state;
-    array = [...classButton.slice(0, index), setColor, ...classButton.slice(index + 1)];
-    this.setState({ classButton: array }, () => {
-      this.timerCount().then(() => {
-        array = [...classButton.slice(0, index), `btn-info`, ...classButton.slice(index + 1)];
-        this.setState({ classButton: array });
+    let arrayColor = [];
+    arrayColor = [...this.state.classButton];
+    arrayColor.splice(index, 1, setColor);
+    this.setState({ classButton: arrayColor }, () => {
+      this.timerDelay().then(() => {
+        arrayColor.splice(index, 1, `btn-info`);
+        this.setState({ classButton: arrayColor });
       });
     });
   }
@@ -121,7 +168,7 @@ class App extends Component {
         if (item === factor1) {
           this.rating(0);
           this.timerButton(`btn-success`, index);
-          this.timerCount().then(() => this.init());
+          this.timerDelay().then(() => this.init());
         } else {
           this.rating(1);
           this.timerButton(`btn-danger`, index);
@@ -131,7 +178,7 @@ class App extends Component {
         if (item === factor2) {
           this.rating(0);
           this.timerButton(`btn-success`, index);
-          this.timerCount().then(() => this.init());
+          this.timerDelay().then(() => this.init());
         } else {
           this.rating(1);
           this.timerButton(`btn-danger`, index);
@@ -141,7 +188,7 @@ class App extends Component {
         if (result === item) {
           this.rating(0);
           this.timerButton(`btn-success`, index);
-          this.timerCount().then(() => this.init());
+          this.timerDelay().then(() => this.init());
         } else {
           this.rating(1);
           this.timerButton(`btn-danger`, index);
@@ -153,30 +200,34 @@ class App extends Component {
   }
 
   render() {
-    const { start, progressBarColor, select, buttonData } = this.state;
+    const { start, progressBarColor, select, progressBarValue, switchValue } = this.state;
+    console.log("TCL: render -> switchValue", switchValue)
     if (!select) { return <div> { start }</div>}
-    //const buttonData = this.generator();
-    console.log("TCL: render -> buttonData", buttonData)
     const itemsView = this.renderExample(select);
-    const buttonsView = this.renderButtons(buttonData);
+    const buttonsView = this.renderButtons();
   return (
-     <div className="container text-center">
+    <div className="container text-center">
      {start}
         <div className="progress">
-            <div className={`progress-bar ${progressBarColor}`} aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+        <div className={`progress-bar ${progressBarColor}`} style={{ width: `${progressBarValue}%` }} aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">{progressBarValue}%</div>
         </div>
-      <div className="row text-center d-flex mx-auto">
+      <div className="row text-center justify-content-around d-flex mx-auto">
           {itemsView}
         </div>
-      <div className="row d-flex flex-nowrap justify-content-between mx-auto">
+      <div className="row d-flex flex-nowrap justify-content-around mx-auto">
           {buttonsView}
         </div>
+      <Switch
+        switchToggle={switchValue}
+        onColor="#EF476F"
+        handleToggle={() => this.setValue()}
+      />
     </div>
   );}
 
-  renderButtons(buttonData) {
-    const { classButton } = this.state;
-    return buttonData.map((item, index) => <div key={index + 100} className="col">
+  renderButtons() {
+    const { buttonData, classButton } = this.state;
+    return buttonData.map((item, index) => <div key={index + 100} className="col-sx-auto">
       <button className={`btn ${classButton[index]} border rounded-circle`}
         onClick={() => this.clickResponse(item, index)} type="button">
         {item}
@@ -187,7 +238,7 @@ class App extends Component {
   renderExample(select) {
     const items = this.filterView(select);
     const listItem = items.map((item, index) =>
-    <div key={index} className="col">
+      <div key={index} className="col-sx-auto">
       <p>{item}</p>
     </div>);
     return listItem;
