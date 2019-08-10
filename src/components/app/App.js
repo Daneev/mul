@@ -37,8 +37,12 @@ class App extends Component {
     this.init();
    };
 
-  init() {
-    const { progressBarValue } = this.state
+
+
+
+  init(reset=false) {
+    let { progressBarValue } = this.state
+    if (reset) { progressBarValue = -1; }
     const countLocal = this.count - progressBarValue
     if (countLocal === 0) return;
     const progressBarColor = `color${Math.floor(progressBarValue/this.count*5)+1}`
@@ -150,11 +154,11 @@ class App extends Component {
     const { factor1, factor2, result} = this.state;
     switch (select) {
       case 1:
-        return [null, "x", factor2, "=", result];
+        return ["?", "x", factor2, "=", result];
       case 2:
-        return [factor1, "x", null, "=", result];
+        return [factor1, "x", "?", "=", result];
       case 3:
-        return [factor1, "x", factor2, "=", null];
+        return [factor1, "x", factor2, "=", "?"];
       default:
         console.log('Я таких значений не знаю');
     };
@@ -205,9 +209,10 @@ class App extends Component {
     if (!select) { return <div> { start }</div>}
     const itemsView = this.renderExample(select);
     const buttonsView = this.renderButtons();
+
   return (
     <div className="container text-center">
-     {start}
+    <div className = "title" onClick={() => this.init(true)}>{start}</div>
         <div className="progress">
         <div className={`progress-bar ${progressBarColor}`} style={{ width: `${progressBarValue}%` }} aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">{progressBarValue}%</div>
         </div>

@@ -8,6 +8,10 @@
   font-size: 40px;
 }
 
+.title {
+  cursor: pointer;
+}
+
 button:not(:disabled), [type="button"]:not(:disabled), [type="reset"]:not(:disabled), [type="submit"]:not(:disabled) {
   font-size: 30px;
 }
